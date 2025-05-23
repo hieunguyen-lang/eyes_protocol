@@ -41,8 +41,17 @@ const Navbar = () => {
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            <button className="btn-primary">Login</button>
+            <Link href="/login" className="btn-primary mr-4">
+              Login
+            </Link>
+            <Link
+              href="/register"
+              className="btn-primary"
+            >
+              Sign up
+            </Link>
           </div>
+          
         </div>
       </div>
 

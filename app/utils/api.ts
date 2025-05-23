@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL for API calls
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'http://localhost:8000';
 
 // Create an axios instance with default configuration
 const api = axios.create({
@@ -46,7 +46,7 @@ export const endpoints = {
   logout: '/auth/logout',
   
   // Dashboard data
-  dashboardStats: '/dashboard/stats',
+  getpostsStats: '/api/face_book/search_post',
   analyticsData: '/analytics/data',
   performanceMetrics: '/performance/metrics',
   users: '/users',
@@ -80,7 +80,8 @@ export const apiService = {
   logout: () => api.post(endpoints.logout),
   
   // Dashboard methods
-  getDashboardStats: () => api.get(endpoints.dashboardStats),
+  getpostsStats: (params: any) => api.post(endpoints.getpostsStats, params),
+
   getAnalyticsData: (params = {}) => api.get(endpoints.analyticsData, { params }),
   getPerformanceMetrics: (params = {}) => api.get(endpoints.performanceMetrics, { params }),
   

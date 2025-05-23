@@ -1,4 +1,4 @@
-// File: C:\Users\hieunk\Downloads\eyes_protocol\app\layout.tsx
+// File: D:\vegacorp-project\eyes_protocol\app\layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

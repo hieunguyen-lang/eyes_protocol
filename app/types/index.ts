@@ -24,10 +24,14 @@ export interface ChartData {
   }[];
 }
 
-export interface TableData {
-  id: number;
+export interface TablePostData {
+  posturl : string,
   name: string;
-  email: string;
-  role: string;
-  status: 'Active' | 'Inactive';
+  content: string;
+  content_created: string;
+  created_at: string;
+  hours_diff: number;
+  reaction_count: number;
+  comment_count: number;
+  share_count: number;
 } 
