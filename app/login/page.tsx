@@ -1,15 +1,101 @@
+'use client'; // Quan trọng khi dùng onClick trong component app/
 import React from 'react';
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
+import { apiService } from '../utils/api';
+import { useState,useEffect } from 'react';
+import { useRouter,useSearchParams } from 'next/navigation'
+import { useAuth } from '../context/AuthContext'
+
+
 import { FiUser, FiMail, FiLock, FiCheck, FiChevronRight } from 'react-icons/fi';
 
-export default function Register() {
+export default function Login() {
+  const router = useRouter()
+  const [formLoading, setFormLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [error_login, setErrorLogin] = useState('')
+  const [success, setSuccess] = useState(false)
+  const searchParams = useSearchParams()
+  const message = searchParams.get('message') ?? ''
+  const [warningMessage, setWarningMessage] = useState('')
+  const { isLoggedIn, loading: authLoading } = useAuth()
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      console.log('Form submit triggered');
+      setFormLoading(true)
+      setError('')
+      setSuccess(false)
+  
+      const form = e.currentTarget
+      const email = (form.elements.namedItem('email') as HTMLInputElement).value
+      const password = (form.elements.namedItem('password') as HTMLInputElement).value
+  
+      try {
+        const params = {
+              username: email,
+              password: password
+            };
+        const res = await apiService.login(params);
+        
+        if (res.status === 200){
+          router.push('/dashboard')
+
+  
+          setSuccess(true)
+        }
+        
+      } catch (err: any) {
+        console.error('Lỗi:', err.response?.data?.message || err.message)
+        setError(err.response?.data?.message || 'Đăng nhập thất bại')
+        
+      } finally {
+        setFormLoading(false)
+      }
+    }
+  // ✅ Nếu đã đăng nhập, chuyển hướng sang dashboard
+  useEffect(() => {
+    if (!authLoading && isLoggedIn) {
+      router.push('/dashboard')
+    }
+  }, [authLoading, isLoggedIn])
+
+  
+
+  // ✅ Xử lý hiển thị cảnh báo nếu bị redirect từ trang không có quyền
+  useEffect(() => {
+    if (message.startsWith('unauthorized')) {
+      setWarningMessage('Vui lòng đăng nhập trước khi truy cập trang này.')
+      const timer = setTimeout(() => setWarningMessage(''), 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [message])
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        console.log('Clearing error after 5s')
+        setError('')  // Ẩn lỗi sau 5 giây
+      }, 5000) // 5000ms = 5 giây
+
+      return () => clearTimeout(timer) // cleanup nếu component unmount hoặc error thay đổi
+    }
+  }, [error])
+  // ✅ Khi chưa xác định trạng thái auth, không render
+  if (authLoading) return null
+  
   return (
+    
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-md mx-auto">
+          {warningMessage && (
+            <div className="mb-6 text-center">
+              <div className="inline-block bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md text-sm font-medium">
+                {warningMessage}
+              </div>
+            </div>
+          )}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Log in</h1>
             <p className="text-gray-600">
@@ -18,8 +104,18 @@ export default function Register() {
           </div>
           
           <div className="bg-white rounded-lg shadow-lg p-8">
+             <>
+              {error && (
+                <div className="mb-4 text-center">
+                  <div className="inline-block bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md text-sm font-medium">
+                    {error}
+                  </div>
+                </div>
+              )}
+              {/* Các phần khác */}
+            </>
             {/* Registration Form */}
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="space-y-6">
                 {/* Email */}
                 <div>

@@ -1,9 +1,68 @@
+'use client'; // Quan trọng khi dùng onClick trong component app/
 import React from 'react';
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
+import { useRouter } from 'next/navigation'
+import { useState,useEffect } from 'react';
 import { FiUser, FiMail, FiLock, FiCheck, FiChevronRight } from 'react-icons/fi';
-
+import { apiService } from '../utils/api';
+import { useAuth } from '../context/AuthContext'
 export default function Register() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+  const { isLoggedIn, loading: authLoading } = useAuth()
+  const router = useRouter()
+  // ✅ Nếu đã đăng nhập, chuyển hướng sang dashboard
+    useEffect(() => {
+      if (!authLoading && isLoggedIn) {
+        router.push('/home')
+      }
+    }, [authLoading, isLoggedIn])
+  // useEffect(() => {
+  //   const checkLogin = async () => {
+  //       try {
+  //         await apiService.get('/api/user/me') // hoặc /users/me
+  //         router.push('/home')
+  //       } catch (err) {
+  //         return null
+  //       }
+  //     }
+  
+  //     checkLogin()
+  //   }, [])
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    setSuccess(false)
+
+    const form = e.currentTarget
+    const name = (form.elements.namedItem('email') as HTMLInputElement).value
+    const email = (form.elements.namedItem('email') as HTMLInputElement).value
+    const password = (form.elements.namedItem('password') as HTMLInputElement).value
+
+    try {
+      const params = {
+            username: name,
+            email: email,
+            password: password
+          };
+      const res = await apiService.register(params);
+      if (res.status == 200){
+        router.push('/login')
+
+        setSuccess(true)
+      }
+      
+    } catch (err: any) {
+      console.error('Lỗi:', err.response?.data?.message || err.message)
+      setError(err.response?.data?.message || 'Đăng ký thất bại')
+    } finally {
+      setLoading(false)
+    }
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -19,7 +78,7 @@ export default function Register() {
           
           <div className="bg-white rounded-lg shadow-lg p-8">
             {/* Registration Form */}
-            <form>
+            <form onSubmit={handleSubmit} >
               <div className="space-y-6">
                 {/* Full Name */}
                 <div>

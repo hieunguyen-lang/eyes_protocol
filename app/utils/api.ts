@@ -2,37 +2,23 @@ import axios from 'axios';
 
 // Base URL for API calls
 const API_BASE_URL = 'http://localhost:8000';
-
+const TOKEN_KEY = 'access_token';
 // Create an axios instance with default configuration
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true, // ✅ Cho phép gửi cookie HttpOnly
   headers: {
     'Content-Type': 'application/json',
+    credentials: 'include'
   },
 });
 
-// Interceptor for request
-api.interceptors.request.use(
-  (config) => {
-    // Add authorization token if available
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Interceptor for response
+// Optional: interceptor response nếu muốn xử lý 401
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle specific errors such as 401 (Unauthorized)
     if (error.response && error.response.status === 401) {
-      // Redirect to login or handle token expiration
-      localStorage.removeItem('auth_token');
-      window.location.href = '/login';
+      window.location.href = '/login'; // hoặc xử lý khác
     }
     return Promise.reject(error);
   }
@@ -41,8 +27,8 @@ api.interceptors.response.use(
 // API endpoints
 export const endpoints = {
   // Authentication
-  login: '/auth/login',
-  register: '/auth/register',
+  login: '/token',
+  register: '/api/user/create_user',
   logout: '/auth/logout',
   
   // Dashboard data
@@ -72,15 +58,28 @@ export const apiService = {
   
   // Authentication methods
   login: (credentials: { email: string; password: string }) => 
-    api.post(endpoints.login, credentials),
+    api.post(
+      endpoints.login, 
+      credentials,
+      {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        
+      },
+      withCredentials: true
+    }
+    ),
   
-  register: (userData: { name: string; email: string; password: string }) => 
+  register: (userData: { username: string; email: string; password: string }) => 
     api.post(endpoints.register, userData),
   
   logout: () => api.post(endpoints.logout),
   
   // Dashboard methods
-  getpostsStats: (params: any) => api.post(endpoints.getpostsStats, params),
+  getpostsStats: async (params: any) => {
+  const res = await api.post(endpoints.getpostsStats, params, { withCredentials: true });
+  return res.data;
+  },
 
   getAnalyticsData: (params = {}) => api.get(endpoints.analyticsData, { params }),
   getPerformanceMetrics: (params = {}) => api.get(endpoints.performanceMetrics, { params }),

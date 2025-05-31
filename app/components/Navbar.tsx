@@ -4,28 +4,41 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
 import { FiHome, FiPieChart, FiUser, FiInfo, FiSettings } from 'react-icons/fi';
-
+import { useState,useEffect } from 'react';
+import { apiService } from '../utils/api';
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../context/AuthContext'
 const Navbar = () => {
   const pathname = usePathname();
-
+  const router = useRouter()
+  
+  const { isLoggedIn, loading } = useAuth()
+  
+  if (loading) {
+    // Đang check auth => bạn có thể hiện spinner, hoặc null để tránh UI nhấp nháy
+    return null
+  }
   const navItems = [
-    { name: 'Home', path: '/', icon: <FiHome className="w-5 h-5" /> },
+    { name: 'Home', path: '/home', icon: <FiHome className="w-5 h-5" /> },
     { name: 'Dashboard', path: '/dashboard', icon: <FiPieChart className="w-5 h-5" /> },
     { name: 'About', path: '/about', icon: <FiInfo className="w-5 h-5" /> },
     { name: 'Register', path: '/register', icon: <FiUser className="w-5 h-5" /> },
     { name: 'Settings', path: '/settings', icon: <FiSettings className="w-5 h-5" /> },
   ];
-
   return (
     <nav className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold text-primary">Elegant<span className="text-accent1">Dashboard</span></span>
+              <Link href="/home" className="text-xl font-bold text-primary">
+                Soical<span className="text-accent1">Track</span>
+              </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {navItems.map((item) => (
+              {navItems
+              .filter(item => !(isLoggedIn && item.name === 'Register'))
+              .map((item) => (
                 <Link
                   key={item.name}
                   href={item.path}
@@ -41,6 +54,8 @@ const Navbar = () => {
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
+            {!isLoggedIn && (
+              <>
             <Link href="/login" className="btn-primary mr-4">
               Login
             </Link>
@@ -50,6 +65,8 @@ const Navbar = () => {
             >
               Sign up
             </Link>
+            </>
+            )}
           </div>
           
         </div>

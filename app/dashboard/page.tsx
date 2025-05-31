@@ -10,6 +10,8 @@ import { apiService } from '../utils/api';
 import { Stat, ChartData, TablePostData } from '../types';
 import { faFacebook } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../context/AuthContext'
 export default function Dashboard() {
 
   const [tableData, setTableData] = useState<TablePostData[]>([]);
@@ -19,12 +21,19 @@ export default function Dashboard() {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-
+  const router = useRouter()
+  const { isLoggedIn } = useAuth()
     // Hàm xử lý chuyển trang
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages || page === currentPage) return;
     fetchStats(page);
   };
+
+  useEffect(() => {
+  if (!isLoggedIn) {
+      router.push('/login?message=unauthorized')
+    }
+  }, [isLoggedIn])
   async function fetchStats(offset: number) {
         try {
           const params = {
@@ -41,13 +50,13 @@ export default function Dashboard() {
           };
 
           const response = await apiService.getpostsStats(params);
-          console.log(response)
+          console.log(response.data)
           // Kiểm tra nếu có dữ liệu trong response.data và nếu đó là một mảng
-          if (!response?.data?.data || !Array.isArray(response.data?.data)) {
+          if (!response?.data || !Array.isArray(response.data)) {
             throw new Error("Invalid posts data");
           }
-
-          const processed = response.data.data.map((post: any) => {
+          
+          const processed = response.data.map((post: any) => {
             
             return {
               posturl: post.post_url,
@@ -61,7 +70,8 @@ export default function Dashboard() {
               share_count: post.share_count
             };
           });
-          setTotalItems(response.data.total)
+          setTotalItems(response.total)
+          console.log("Total items:", response.total)
           setTableData(processed);
           setCurrentPage(offset);  
         } catch (error) {
@@ -76,23 +86,35 @@ export default function Dashboard() {
   const getPaginationRange = (currentPage: number, totalPages: number): (number | string)[] => {
   const delta = 2;
   const range: (number | string)[] = [];
+  const left = Math.max(2, currentPage - delta);
+  const right = Math.min(totalPages - 1, currentPage + delta);
 
-  for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
-      range.push(i);
-    }
+  // Always include the first page
+  range.push(1);
 
-    if (currentPage - delta > 2) {
-      range.unshift('...');
-    }
-    if (currentPage + delta < totalPages - 1) {
-      range.push('...');
-    }
+  // Add "..." if there's a gap between 1 and left
+  if (left > 2) {
+    range.push("...");
+  }
 
-    range.unshift(1);
-    if (totalPages > 1) range.push(totalPages);
+  // Add page numbers between left and right
+  for (let i = left; i <= right; i++) {
+    range.push(i);
+  }
 
-    return range;
-  };
+  // Add "..." if there's a gap between right and last page
+  if (right < totalPages - 1) {
+    range.push("...");
+  }
+
+  // Always include the last page
+  if (totalPages > 1) {
+    range.push(totalPages);
+  }
+
+  return range;
+};
+  
 
   
     // Gọi hàm
