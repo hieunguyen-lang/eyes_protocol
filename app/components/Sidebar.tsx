@@ -28,8 +28,8 @@ const Sidebar = () => {
       name: 'Facebook', path: '/dashboard',
       icon: <FontAwesomeIcon icon={faFacebook} className="text-blue-600 w-5 h-5 mr-2" />,
       children: [
-        { name: 'Facebook Posts', path: '/dashboard/facebookgroup/posts' },
-        { name: 'Facebook Groups', path: '/dashboard/facebookgroup/comments' },
+        { name: 'Group Posts', path: '/dashboard/facebookgroup/posts' },
+        { name: 'Group Comments', path: '/dashboard/facebookgroup/comments' },
       ]
     },
     { name: 'Analytics', path: '/dashboard/analytics', icon: <FiPieChart className="w-5 h-5" /> },

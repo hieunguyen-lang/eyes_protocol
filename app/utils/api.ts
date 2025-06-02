@@ -33,6 +33,7 @@ export const endpoints = {
   
   // Dashboard data
   getpostsStats: '/api/face_book/search_post',
+  getcommentsStats: '/api/face_book/search_comments',
   analyticsData: '/analytics/data',
   performanceMetrics: '/performance/metrics',
   users: '/users',
@@ -80,7 +81,10 @@ export const apiService = {
   const res = await api.post(endpoints.getpostsStats, params, { withCredentials: true });
   return res.data;
   },
-
+  getcommentsStats: async (params: any) => {
+  const res = await api.post(endpoints.getcommentsStats, params, { withCredentials: true });
+  return res.data;
+  },
   getAnalyticsData: (params = {}) => api.get(endpoints.analyticsData, { params }),
   getPerformanceMetrics: (params = {}) => api.get(endpoints.performanceMetrics, { params }),
   

@@ -7,14 +7,15 @@ import Chart from '../../../components/Chart';
 import { FiUsers, FiActivity, FiBarChart2, FiDatabase,FiAlertCircle } from 'react-icons/fi';
 import { useEffect, useState } from 'react';
 import { apiService } from '../../../utils/api';
-import { Stat, ChartData, TablePostData } from '../../../types';
+import { Stat, ChartData, TableCommentsData } from '../../../types';
 import { faFacebook } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../context/AuthContext'
+import Select from "react-select";
 export default function Dashboard() {
 
-  const [tableData, setTableData] = useState<TablePostData[]>([]);
+  const [tableData, setTableData] = useState<TableCommentsData[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [totalItems, setTotalItems] = useState(0);
@@ -23,10 +24,32 @@ export default function Dashboard() {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const router = useRouter()
   const { isLoggedIn } = useAuth()
+
+  //search filter
+  const [searchName, setSearchName] = useState("");
+  const [searchContent, setSearchContent] = useState("");
+  const [searchGroupid, setSearchGroupid] = useState<number[]>([]);
+
+  const options = [
+    { value: 658484092993320, label: "Cộng đồng thiết kế website uy tín giá rẻ" },
+    { value: 462482521683005, label: "HOMESTAY HÀ NỘI ☑️" },
+    { value: 434990041885698, label: "HOMESTAY, KHÁCH SẠN HÀ NỘI" },
+    { value: 863933957570229, label: "Homestay Hà Nội Giá Rẻ" },
+    { value: 1198365520521080, label: "HomeStay Sinh Viên" },
+    { value: 311253627456359, label: "CẦN LÀ CÓ(Haui)" },
+    { value: 392469703338464, label: "Hội Thiết Kế Website Và SEO Web Online (FREELANCER UY TÍN)❤️" },
+  ];
+
+
+ 
     // Hàm xử lý chuyển trang
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages || page === currentPage) return;
-    fetchStats(page);
+    fetchStats(page,{
+    name: searchName,
+    content: searchContent,
+    group_ids: searchGroupid
+  });
   };
 
   useEffect(() => {
@@ -34,22 +57,17 @@ export default function Dashboard() {
       router.push('/login?message=unauthorized')
     }
   }, [isLoggedIn])
-  async function fetchStats(offset: number) {
+  async function fetchStats(offset: number,filters?: { name?: string; content?: string; group_ids?: number[] }) {
         try {
           const params = {
             offset: offset,
             limit: 10,
-            group_ids: [
-              "462482521683005",
-              "434990041885698",
-              "863933957570229",
-              "751860423062303",
-              "1198365520521080"
-            ],
-            group_type: "homestay"
+            group_ids: filters?.group_ids,
+            search_name: filters?.name || '',
+            search_content: filters?.content || '',
           };
 
-          const response = await apiService.getpostsStats(params);
+          const response = await apiService.getcommentsStats(params);
           console.log(response.data)
           // Kiểm tra nếu có dữ liệu trong response.data và nếu đó là một mảng
           if (!response?.data || !Array.isArray(response.data)) {
@@ -59,15 +77,14 @@ export default function Dashboard() {
           const processed = response.data.map((post: any) => {
             
             return {
-              posturl: post.post_url,
+              comment_url: post.comment_url,
               name: post.user_name,
               content: post.content,
               content_created: post.content_created,
               created_at: post.created_at,
               hours_diff: post.hours_diff,
-              reaction_count: post.reaction_count,
-              comment_count: post.comment_count,
-              share_count: post.share_count
+              reply_count: post.reply_count,
+              author_url: post.author_url
             };
           });
           setTotalItems(response.total)
@@ -80,8 +97,8 @@ export default function Dashboard() {
     }
   useEffect(() => {
       console.log("useEffect running!");
-      fetchStats(1);
-  }, []);
+      fetchStats(1,{name: searchName,content: searchContent,group_ids: searchGroupid });
+  }, [searchName, searchContent, searchGroupid]);
 
   const getPaginationRange = (currentPage: number, totalPages: number): (number | string)[] => {
   const delta = 2;
@@ -121,13 +138,43 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
+        {/* <div>
+          <h1 className="text-2xl font-bold text-gray-800">Facebook Comment</h1>
         </div>
-        
+         */}
+        <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search by name..."
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+            />
+          </div>
+          <div className="flex-1 mt-2 md:mt-0">
+            <input
+              type="text"
+              placeholder="Search content..."
+              value={searchContent}
+              onChange={(e) => setSearchContent(e.target.value)}
+              className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+            />
+          </div>
+          <div className="flex-1 mt-2 md:mt-0">
+            <Select
+              options={options}
+              isMulti
+              value={options.filter(o => searchGroupid.includes(o.value))}
+              onChange={(selectedOptions) => setSearchGroupid(selectedOptions.map(o => o.value))}
+            />
+
+          </div>
+        </div>
+
         {/* Recent Users Table */}
         <div className="card overflow-hidden">
-          <h2 className="text-lg font-semibold mb-4"><FontAwesomeIcon icon={faFacebook} className="text-blue-600 w-5 h-5 mr-2" />Facebook Group Post</h2>
+          <h2 className="text-lg font-semibold mb-4"><FontAwesomeIcon icon={faFacebook} className="text-blue-600 w-5 h-5 mr-2" />Facebook Group Comments</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 overflow-visible">
               <thead className="bg-gray-50">
@@ -145,19 +192,22 @@ export default function Dashboard() {
                     Thời gian lấy bài
                   </th>
                   <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-1200 uppercase tracking-wider">
+                    Số lượng reply
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-1200 uppercase tracking-wider">
                     Độ trễ
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {tableData.map((item) => (
-                  <tr  className="group relative hover:bg-purple-50 cursor-pointer" onClick={() => window.open(item.posturl, '_blank')}>
+                  <tr  className="group relative hover:bg-purple-50 cursor-pointer" onClick={() => window.open(item.author_url, '_blank')}>
                     <td className="min-h-[30px] max-h-[30px] px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500 max-w-[800px] max-h-[100px] overflow-hidden font-medium text-gray-900 text-ellipsis">{item.name}</div>
                       
                     </td>
                     <td className="min-h-[30px] max-h-[30px] px-6 py-4 whitespace-nowrap">
-                      <a href={item.posturl} className="text-sm  block" target="_blank">
+                      <a href={item.comment_url} className="text-sm  block" target="_blank">
                         <div className="text-sm text-gray-500 max-w-[800px] max-h-[100px] overflow-hidden font-medium text-gray-900 text-ellipsis">{item.content}</div>
                       </a>
                       
@@ -173,6 +223,9 @@ export default function Dashboard() {
                     </td>
                     <td className="min-h-[30px] max-h-[30px] px-6 py-4 whitespace-nowrap">
                       <div className="min-h-[30px] max-h-[30px] text-sm font-medium text-gray-900">{item.created_at}</div>
+                    </td>
+                    <td className="min-h-[30px] max-h-[30px] px-6 py-4 whitespace-nowrap">
+                      <div className="min-h-[30px] max-h-[30px] text-sm font-medium text-gray-900">{item.reply_count}</div>
                     </td>
                     <td className="min-h-[30px] max-h-[30px] px-6 py-4 whitespace-nowrap">
                       <div className="min-h-[30px] max-h-[30px] text-sm font-medium text-gray-900">{item.hours_diff}</div>

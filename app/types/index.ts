@@ -35,3 +35,14 @@ export interface TablePostData {
   comment_count: number;
   share_count: number;
 } 
+
+export interface TableCommentsData {
+  comment_url : string,
+  name: string;
+  content: string;
+  content_created: string;
+  created_at: string;
+  hours_diff: number;
+  reply_count: number;
+  author_url: string;
+} 
