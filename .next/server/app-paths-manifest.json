@@ -2,7 +2,7 @@
   "/not-found": "app/not-found.js",
   "/home/page": "app/home/page.js",
   "/login/page": "app/login/page.js",
-  "/page": "app/page.js",
   "/dashboard/facebookgroup/posts/page": "app/dashboard/facebookgroup/posts/page.js",
-  "/dashboard/facebookgroup/comments/page": "app/dashboard/facebookgroup/comments/page.js"
+  "/dashboard/facebookgroup/comments/page": "app/dashboard/facebookgroup/comments/page.js",
+  "/dashboard/page": "app/dashboard/page.js"
 }

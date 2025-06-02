@@ -29,6 +29,8 @@ export default function Dashboard() {
   const [searchName, setSearchName] = useState("");
   const [searchContent, setSearchContent] = useState("");
   const [searchGroupid, setSearchGroupid] = useState<number[]>([]);
+  const [searchPostId, setSearchPostId] = useState("");
+
 
   const options = [
     { value: 658484092993320, label: "Cộng đồng thiết kế website uy tín giá rẻ" },
@@ -48,7 +50,8 @@ export default function Dashboard() {
     fetchStats(page,{
     name: searchName,
     content: searchContent,
-    group_ids: searchGroupid
+    group_ids: searchGroupid,
+    post_id: (searchPostId),
   });
   };
 
@@ -57,7 +60,7 @@ export default function Dashboard() {
       router.push('/login?message=unauthorized')
     }
   }, [isLoggedIn])
-  async function fetchStats(offset: number,filters?: { name?: string; content?: string; group_ids?: number[] }) {
+  async function fetchStats(offset: number,filters?: { name?: string; content?: string; group_ids?: number[]; post_id?: string }) {
         try {
           const params = {
             offset: offset,
@@ -65,6 +68,7 @@ export default function Dashboard() {
             group_ids: filters?.group_ids,
             search_name: filters?.name || '',
             search_content: filters?.content || '',
+            search_post_id: Number(filters?.post_id) || null,
           };
 
           const response = await apiService.getcommentsStats(params);
@@ -84,7 +88,8 @@ export default function Dashboard() {
               created_at: post.created_at,
               hours_diff: post.hours_diff,
               reply_count: post.reply_count,
-              author_url: post.author_url
+              author_url: post.author_url,
+              post_id: post.post_id
             };
           });
           setTotalItems(response.total)
@@ -97,8 +102,8 @@ export default function Dashboard() {
     }
   useEffect(() => {
       console.log("useEffect running!");
-      fetchStats(1,{name: searchName,content: searchContent,group_ids: searchGroupid });
-  }, [searchName, searchContent, searchGroupid]);
+      fetchStats(1,{name: searchName,content: searchContent,group_ids: searchGroupid, post_id: searchPostId });
+  }, [searchName, searchContent, searchGroupid, searchPostId]);
 
   const getPaginationRange = (currentPage: number, totalPages: number): (number | string)[] => {
   const delta = 2;
@@ -141,7 +146,8 @@ export default function Dashboard() {
         {/* <div>
           <h1 className="text-2xl font-bold text-gray-800">Facebook Comment</h1>
         </div>
-         */}
+        */}
+        {/*Filter data */}
         <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-4">
           <div className="flex-1">
             <input
@@ -149,6 +155,15 @@ export default function Dashboard() {
               placeholder="Search by name..."
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
+              className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+            />
+          </div>
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search by post id..."
+              value={searchPostId}
+              onChange={(e) => setSearchPostId(e.target.value)}
               className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
             />
           </div>
@@ -183,6 +198,9 @@ export default function Dashboard() {
                     User Name
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-1200 uppercase tracking-wider">
+                    Post ID
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-1200 uppercase tracking-wider">
                     Content Post
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-1200 uppercase tracking-wider">
@@ -201,10 +219,14 @@ export default function Dashboard() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {tableData.map((item) => (
-                  <tr  className="group relative hover:bg-purple-50 cursor-pointer" onClick={() => window.open(item.author_url, '_blank')}>
+                  <tr  className="group relative hover:bg-purple-50 cursor-pointer" >
                     <td className="min-h-[30px] max-h-[30px] px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500 max-w-[800px] max-h-[100px] overflow-hidden font-medium text-gray-900 text-ellipsis">{item.name}</div>
-                      
+                      <a href={item.author_url} className="text-sm  block" target="_blank">
+                        <div className="text-sm text-gray-500 max-w-[800px] max-h-[100px] overflow-hidden font-medium text-gray-900 text-ellipsis">{item.name}</div>
+                     </a>
+                    </td>
+                    <td className="min-h-[30px] max-h-[30px] px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500 max-w-[800px] max-h-[100px] overflow-hidden font-medium text-gray-900 text-ellipsis">{item.post_id}</div>
                     </td>
                     <td className="min-h-[30px] max-h-[30px] px-6 py-4 whitespace-nowrap">
                       <a href={item.comment_url} className="text-sm  block" target="_blank">

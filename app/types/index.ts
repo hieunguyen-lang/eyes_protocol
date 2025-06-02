@@ -45,4 +45,5 @@ export interface TableCommentsData {
   hours_diff: number;
   reply_count: number;
   author_url: string;
+  post_id: number;
 } 
