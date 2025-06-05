@@ -4,8 +4,8 @@ import React from 'react';
 import DashboardLayout from '../../../components/DashboardLayout';
 import StatCard from '../../../components/StatCard';
 import Chart from '../../../components/Chart';
-import { FiUsers, FiActivity, FiBarChart2, FiDatabase,FiAlertCircle } from 'react-icons/fi';
-import { useEffect, useState } from 'react';
+import { FiUsers, FiActivity, FiBarChart2, FiDatabase, FiAlertCircle } from 'react-icons/fi';
+import { useEffect, useState, useCallback } from 'react';
 import { apiService } from '../../../utils/api';
 import { Stat, ChartData, TableCommentsData } from '../../../types';
 import { faFacebook } from '@fortawesome/free-brands-svg-icons';
@@ -13,6 +13,42 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../context/AuthContext'
 import Select from "react-select";
+interface OptionType {
+  value: number
+  label: string
+}
+const customStylesSelects = {
+    control: (provided: any) => ({
+      ...provided,
+      borderRadius: '8px',
+      borderColor: '#4F46E5',
+      boxShadow: '0 0 0 1px #4F46E5',
+      minHeight: '40px',
+      '&:hover': {
+        borderColor: '#4338CA',
+      },
+    }),
+    multiValue: (provided: any) => ({
+      ...provided,
+      backgroundColor: '#EEF2FF',
+    }),
+    multiValueLabel: (provided: any) => ({
+      ...provided,
+      color: '#4F46E5',
+      fontWeight: 600,
+    }),
+    option: (provided: any, state: any) => ({
+      ...provided,
+      backgroundColor: state.isFocused ? '#E0E7FF' : 'white',
+      color: state.isFocused ? '#4338CA' : 'black',
+      cursor: 'pointer',
+    }),
+    placeholder: (provided: any) => ({
+      ...provided,
+      color: '#9CA3AF',
+      fontStyle: 'italic',
+    }),
+  };
 export default function Dashboard() {
 
   const [tableData, setTableData] = useState<TableCommentsData[]>([]);
@@ -23,27 +59,78 @@ export default function Dashboard() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const router = useRouter()
-  const { isLoggedIn } = useAuth()
 
+  //check log in
+  const { isLoggedIn,loading } = useAuth()
+  useEffect(() => {
+    if (!loading && !isLoggedIn) {
+        router.push('/login?message=unauthorized')
+      }
+    }, [loading, isLoggedIn])
+    
   //search filter
   const [searchName, setSearchName] = useState("");
   const [searchContent, setSearchContent] = useState("");
   const [searchGroupid, setSearchGroupid] = useState<number[]>([]);
   const [searchPostId, setSearchPostId] = useState("");
 
+  //select group 
+  const [options, setOptions] = useState<OptionType[]>([])
+  const [page, setPage] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingSelect, setLoadingSelect] = useState(false)
+  const select_group_limit = 5
+  
 
-  const options = [
-    { value: 658484092993320, label: "Cộng đồng thiết kế website uy tín giá rẻ" },
-    { value: 462482521683005, label: "HOMESTAY HÀ NỘI ☑️" },
-    { value: 434990041885698, label: "HOMESTAY, KHÁCH SẠN HÀ NỘI" },
-    { value: 863933957570229, label: "Homestay Hà Nội Giá Rẻ" },
-    { value: 1198365520521080, label: "HomeStay Sinh Viên" },
-    { value: 311253627456359, label: "CẦN LÀ CÓ(Haui)" },
-    { value: 392469703338464, label: "Hội Thiết Kế Website Và SEO Web Online (FREELANCER UY TÍN)❤️" },
-  ];
+  //load data lần đầu
+  useEffect(() => {
+    
+    fetchOptions();
+  }, []);
 
+  const fetchOptions = useCallback(async () => {
+    console.log("fetchOptions called", { loadingSelect, hasMore, page });
 
- 
+    if (loadingSelect || !hasMore) return
+    setLoadingSelect(true)
+
+    try {
+      const params = {
+            offset: page * select_group_limit,
+            limit: select_group_limit,
+      }
+      const res = await apiService.getgroups(params);
+      
+      const newOptions: OptionType[] = res.data.map((group: any) => ({
+        value: Number(group.group_id),
+        label: group.group_name
+      }))
+      console.log("newOptions");
+      console.log(newOptions);
+      if (newOptions.length === 0) {
+        setHasMore(false)  // Dừng gọi tiếp nếu api trả về rỗng
+      } else {
+        setOptions(prev => {
+          const existingIds = new Set(prev.map(o => o.value));
+          const filteredNewOptions = newOptions.filter(o => !existingIds.has(o.value));
+          return [...prev, ...filteredNewOptions];
+        });
+        setPage(prev => prev + 1)
+      }
+    } catch (error) {
+      console.error('Fetch options error:', error)
+    } finally {
+      setLoadingSelect(false)
+    }
+  }, [page, select_group_limit, loadingSelect, hasMore])
+
+  // Hàm xử lý scroll bottom trong dropdown để gọi fetch thêm
+  const handleMenuScrollToBottom = () => {
+    if (!loadingSelect && hasMore) {
+      fetchOptions()
+    }
+  }
+  
     // Hàm xử lý chuyển trang
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages || page === currentPage) return;
@@ -55,11 +142,9 @@ export default function Dashboard() {
   });
   };
 
-  useEffect(() => {
-  if (!isLoggedIn) {
-      router.push('/login?message=unauthorized')
-    }
-  }, [isLoggedIn])
+  console.log("SearchGroupId", searchGroupid);
+  console.log("Value select:", options.filter(o => searchGroupid.includes(o.value)));
+
   async function fetchStats(offset: number,filters?: { name?: string; content?: string; group_ids?: number[]; post_id?: string }) {
         try {
           const params = {
@@ -178,11 +263,16 @@ export default function Dashboard() {
           </div>
           <div className="flex-1 mt-2 md:mt-0">
             <Select
-              options={options}
-              isMulti
-              value={options.filter(o => searchGroupid.includes(o.value))}
-              onChange={(selectedOptions) => setSearchGroupid(selectedOptions.map(o => o.value))}
-            />
+                options={options}
+                isMulti
+                value={options.filter(o => searchGroupid.includes(o.value))}
+                onChange={(selectedOptions) =>
+                  setSearchGroupid(selectedOptions.map(o => o.value))
+                }
+                styles={customStylesSelects}
+                onMenuScrollToBottom={handleMenuScrollToBottom}
+                getOptionValue={(option) => String(option.value)} // <-- Quan trọng
+              />
 
           </div>
         </div>

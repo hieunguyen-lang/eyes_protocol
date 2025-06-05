@@ -127,7 +127,7 @@ export default function Login() {
                       <FiMail className="h-5 w-5 text-gray-400" />
                     </div>
                     <input
-                      type="email"
+                      type="texxt"
                       id="email"
                       name="email"
                       className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-accent1 focus:border-accent1 sm:text-sm"
