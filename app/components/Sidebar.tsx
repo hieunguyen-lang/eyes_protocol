@@ -30,6 +30,7 @@ const Sidebar = () => {
       children: [
         { name: 'Group Posts', path: '/dashboard/facebookgroup/posts' },
         { name: 'Group Comments', path: '/dashboard/facebookgroup/comments' },
+        { name: 'List Groups', path: '/dashboard/facebookgroup/listgroups' },
       ]
     },
     { name: 'Analytics', path: '/dashboard/analytics', icon: <FiPieChart className="w-5 h-5" /> },

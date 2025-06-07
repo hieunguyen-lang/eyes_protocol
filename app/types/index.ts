@@ -34,6 +34,8 @@ export interface TablePostData {
   reaction_count: number;
   comment_count: number;
   share_count: number;
+  image_url: string| null;
+  type: string;
 } 
 
 export interface TableCommentsData {
@@ -46,4 +48,24 @@ export interface TableCommentsData {
   reply_count: number;
   author_url: string;
   post_id: number;
+} 
+
+
+export interface TablePostDataMock {
+  posturl : string,
+  name: string;
+  content: string;
+  content_created: string;
+  reaction_count: number;
+  comment_count: number;
+  share_count: number;
+  image_url: string| null;
+  type: string;
+} 
+
+export interface TableGroupData {
+  group_id : string,
+  group_name: string;
+  group_type: string;
+  last_crawled: string;
 } 

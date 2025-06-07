@@ -35,7 +35,8 @@ export const endpoints = {
   getpostsStats: '/api/face_book/search_post',
   getcommentsStats: '/api/face_book/search_comments',
   getgroups: '/api/face_book/search_group',
-
+  addgroups: '/api/face_book/add_new_group',
+  
   analyticsData: '/analytics/data',
   performanceMetrics: '/performance/metrics',
   users: '/users',
@@ -89,6 +90,10 @@ export const apiService = {
   },
   getgroups: async (params: any) => {
   const res = await api.post(endpoints.getgroups, params, { withCredentials: true });
+  return res.data;
+  },
+  addgroups: async (params: any) => {
+  const res = await api.post(endpoints.addgroups, params, { withCredentials: true });
   return res.data;
   },
   getAnalyticsData: (params = {}) => api.get(endpoints.analyticsData, { params }),
