@@ -19,7 +19,7 @@ const Navbar = () => {
     return null
   }
   const navItems = [
-    { name: 'Home', path: '/home', icon: <FiHome className="w-5 h-5" /> },
+    { name: 'Home', path: '/', icon: <FiHome className="w-5 h-5" /> },
     { name: 'Dashboard', path: '/dashboard', icon: <FiPieChart className="w-5 h-5" /> },
     { name: 'About', path: '/about', icon: <FiInfo className="w-5 h-5" /> },
     { name: 'Register', path: '/register', icon: <FiUser className="w-5 h-5" /> },
@@ -31,7 +31,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/home" className="text-xl font-bold text-primary">
+              <Link href="/" className="text-xl font-bold text-primary">
                 Soical<span className="text-accent1">Track</span>
               </Link>
             </div>

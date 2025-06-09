@@ -19,7 +19,7 @@ import Navbar from '../components/Navbar';
 
 export default function Dashboard() {
 
-  const [tableData, setTableData] = useState<TablePostData[]>([]);
+    const [tableData, setTableData] = useState<TablePostData[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
     const [totalItems, setTotalItems] = useState(0);

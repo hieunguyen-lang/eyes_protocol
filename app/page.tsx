@@ -1,8 +1,13 @@
+"use client";
 import Link from 'next/link';
 import Navbar from './components/Navbar';
+import { useState } from 'react';
 import { FiBarChart2, FiUser, FiLock, FiDatabase, FiSearch } from 'react-icons/fi';
 import { faFacebook, faThreads, faInstagram } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { mockPosts } from './components/mockdata/postcardlist';
+import PostCardList from './components/PostCardList';
+import { TablePostData } from './types';
 export default function Home() {
   const features = [
     {
@@ -31,58 +36,83 @@ export default function Home() {
       icon: <FiSearch className="h-8 w-8" />,
     },
   ];
-
+  const [tableData, setTableData] = useState<TablePostData[]>([]);
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const handleSearch = e => {
+    e.preventDefault();
+    fetchNextPage()
+  };
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const fetchNextPage = async () => { 
+      try {
+            const response = mockPosts;
+            
+            if (Array.isArray(response)) {
+              const processed = response.map((post: any) => ({
+                posturl: post.post_url,
+                name: post.name,
+                content: post.content,
+                content_created: post.content_created,
+                created_at: post.created_at,
+                hours_diff: post.hours_diff,
+                reaction_count: post.reaction_count,
+                comment_count: post.comment_count,
+                share_count: post.share_count,
+                image_url: post.image_url,
+                type: post.type,
+              }));
+              console.log(processed)
+              setTableData(prev => [...prev, ...processed]);
+              
+            }
+      } catch (error) {
+            console.error("Error fetching next page:", error);
+      } finally {
+            setIsFetchingMore(false);
+      }
+  };
   return (
-    <div className="min-h-screen bg-white">
+     <div className="min-h-screen bg-white">
       <Navbar />
-      
-      {/* Hero Section */}
-      <section className="relative bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'url("/background.png")' }}>
-        <div className="bg-primary bg-opacity-50 py-16 md:py-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center">
-            <div className="md:w-1/2 mb-10 md:mb-0">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                GIẢI PHÁP THEO DÕI MẠNG XÃ HỘI
-              </h1>
-              <p className="text-lg md:text-xl text-gray-300 mb-8">
-                 <b>SocialTrack</b> là nền tảng theo dõi mạng xã hội toàn diện, giúp doanh nghiệp giám sát từ khóa, hashtag, phân tích cảm xúc và theo dõi thương hiệu theo thời gian thực. Hỗ trợ Facebook, Threads, YouTube, Instagram và hơn thế nữa.
-              </p>
-              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                <Link href="/dashboard" className="btn-primary">
-                  Explore Dashboard
-                </Link>
-                <Link href="/register" className="bg-white text-primary px-4 py-2 rounded-md hover:bg-gray-100 transition-all inline-block text-center">
-                  Get Started
-                </Link>
-              </div>
-            </div>
-            <div className="md:w-1/2 flex justify-end">
-              <div className="relative w-full max-w-md">
-                <div className="bg-accent1/80 absolute -left-4 -top-4 rounded-lg w-full h-full"></div>
-                <div className="bg-white p-4 rounded-lg shadow-xl relative z-10">
-                  <img 
-                    src="/dashboard-preview.png" 
-                    alt="Dashboard Preview" 
-                    className="rounded-md shadow-sm w-full h-auto"
-                    style={{ opacity: 0.9 }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+
+      {/* Hero Section with Emphasized Search */}
+      <section className="relative bg-gradient-to-br from-primary to-accent1 text-white py-24">
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <h1 className="text-5xl font-extrabold mb-6">Tìm kiếm mạng xã hội theo thời gian thực</h1>
+          <p className="text-xl mb-8 text-white/80">Dùng thử công cụ tìm kiếm tích hợp AI thông minh tìm kiếm khách hàng tiềm năng từ Facebook, Threads, Instagram và hơn thế nữa.</p>
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <input
+              type="text"
+              placeholder="Nhập từ khóa..."
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              className="w-full sm:w-2/3 px-4 py-3 text-gray-800 rounded-lg focus:outline-none"
+            />
+            <button type="submit" className="bg-white text-primary font-semibold px-6 py-3 rounded-lg hover:bg-gray-100">
+              <FiSearch className="inline w-5 h-5 mr-1" /> Tìm kiếm
+            </button>
+          </form> 
+        </div>
+        <div className='py-24'>
+        {/* Thay vì map trực tiếp PostCard, bạn dùng PostCardList */}
+          <PostCardList 
+                  posts={tableData}
+                  fetchNextPage={fetchNextPage}
+                  hasMore={false} 
+        />
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-16 md:py-24">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Tính năng đặc biệt</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Our dashboard combines elegant design with powerful functionality to give you the tools you need.
+              Dashboard hiện đại tích hợp khả năng theo dõi mạng xã hội mạnh mẽ và trực quan.
             </p>
           </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <div key={index} className="card hover:shadow-lg transition-all border-t-4 border-accent1">
@@ -99,12 +129,12 @@ export default function Home() {
       <section className="py-16 bg-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to get started?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Sẵn sàng để bắt đầu?</h2>
             <p className="text-lg text-gray-300 max-w-3xl mx-auto mb-8">
-              Sign up today and experience the power of our elegant dashboard solution.
+              Đăng ký ngay và trải nghiệm nền tảng theo dõi mạng xã hội mạnh mẽ.
             </p>
             <Link href="/register" className="btn-primary">
-              Create an Account
+              Tạo tài khoản
             </Link>
           </div>
         </div>
